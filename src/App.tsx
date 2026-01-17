@@ -1,4 +1,8 @@
-// FRONTEND FROZEN — BACKEND IS SOURCE OF TRUTH
+/**
+ * Aura-Match Application
+ * 
+ * Production-ready internship matching platform
+ */
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,14 +12,19 @@ import { UIProvider } from "@/context/UIContext";
 import { CompanyProvider } from "@/context/CompanyContext";
 import FlowGuard from "@/components/FlowGuard";
 import CompanyFlowGuard from "@/components/CompanyFlowGuard";
+
+// Pages
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import AuthCallback from "./pages/AuthCallback";
 import Onboard from "./pages/Onboard";
 import VerifyEmail from "./pages/VerifyEmail";
 import VerifyPhone from "./pages/VerifyPhone";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
 import PolicySimulator from "./pages/PolicySimulator";
+
+// Student Pages
 import StudentProfile from "./pages/student/Profile";
 import StudentDashboard from "./pages/student/Dashboard";
 import SkillExtraction from "./pages/student/SkillExtraction";
@@ -25,15 +34,25 @@ import Result from "./pages/student/Result";
 import History from "./pages/student/History";
 import Notifications from "./pages/student/Notifications";
 import Offers from "./pages/student/Offers";
+
+// Company Pages
 import CompanyLogin from "./pages/company/Login";
 import CompanyVerifyEmail from "./pages/company/VerifyEmail";
 import CompanyProfile from "./pages/company/Profile";
 import CreateJob from "./pages/company/CreateJob";
 import JobStatus from "./pages/company/JobStatus";
 import JobMatches from "./pages/company/JobMatches";
+
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -44,9 +63,11 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<Landing />} />
               <Route path="/onboard" element={<Onboard />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/verify/email" element={<VerifyEmail />} />
               <Route path="/verify/phone" element={<VerifyPhone />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -127,6 +148,8 @@ const App = () => (
                   <JobMatches />
                 </CompanyFlowGuard>
               } />
+              
+              {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

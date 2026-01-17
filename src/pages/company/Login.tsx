@@ -1,4 +1,6 @@
-// FRONTEND FROZEN — BACKEND IS SOURCE OF TRUTH
+/**
+ * Company Login Page
+ */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -45,7 +47,7 @@ const CompanyLogin: React.FC = () => {
     try {
       await loginCompany(email.trim(), password.trim());
       // Navigation handled by useEffect
-    } catch (err) {
+    } catch {
       setError('Login failed. Please check your credentials.');
     }
   };
@@ -62,7 +64,7 @@ const CompanyLogin: React.FC = () => {
     try {
       await registerCompany(email.trim(), password.trim(), companyName.trim());
       navigate('/company/verify-email');
-    } catch (err) {
+    } catch {
       setError('Registration failed. Please try again.');
     }
   };
@@ -175,10 +177,6 @@ const CompanyLogin: React.FC = () => {
           >
             {mode === 'login' ? "Don't have an account? Register" : 'Already have an account? Sign In'}
           </button>
-
-          <p className="text-xs text-center text-muted-foreground mt-4 p-3 rounded-lg bg-muted/50">
-            ⚠️ FRONTEND FROZEN — Backend integration pending.
-          </p>
 
           <div className="mt-6 text-center">
             <Link
