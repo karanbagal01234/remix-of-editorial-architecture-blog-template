@@ -1,11 +1,13 @@
-// FRONTEND FROZEN — BACKEND IS SOURCE OF TRUTH
+/**
+ * Landing Page - Aura-Match
+ */
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import AIAvatar from '@/components/AIAvatar';
 import AnimatedButton from '@/components/AnimatedButton';
-import { Sparkles, Users, Building2, ArrowRight, Shield, CheckCircle } from 'lucide-react';
+import { Sparkles, Users, Building2, ArrowRight, CheckCircle } from 'lucide-react';
 
 const Landing: React.FC = () => {
   const heroRef = useRef<HTMLDivElement>(null);
@@ -225,7 +227,7 @@ const Landing: React.FC = () => {
           </motion.div>
 
           <div ref={cardsRef} className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
+            {features.map((feature) => (
               <motion.div
                 key={feature.title}
                 className="feature-card glass rounded-2xl p-6 hover:shadow-xl transition-shadow"
@@ -273,7 +275,7 @@ const Landing: React.FC = () => {
       {/* Footer */}
       <footer className="py-8 border-t border-border">
         <div className="container mx-auto px-6 text-center text-muted-foreground">
-          <p>© 2026 Aura-Match Assistant. Built with care for students everywhere.</p>
+          <p>© 2026 Aura-Match. Connecting talent with opportunity.</p>
         </div>
       </footer>
     </div>

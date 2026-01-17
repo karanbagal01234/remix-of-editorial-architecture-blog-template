@@ -1,13 +1,12 @@
-// FRONTEND FROZEN — BACKEND IS SOURCE OF TRUTH
 /**
  * UIContext - Single source of truth for UI state
  * 
- * BACKEND AUTHORITY MODEL:
- * - All user data comes from backend
+ * JWT-ONLY AUTH MODEL:
+ * - All user data comes from /auth/me
  * - Context NEVER computes verification status
  * - Context NEVER stores domain data
- * - On refresh: revalidate from backend
- * - After mutations: refetch state
+ * - On refresh: revalidate from /auth/me
+ * - After mutations: refetch state from /auth/me
  */
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import * as authApi from '@/api/auth.api';
@@ -28,6 +27,7 @@ interface UIContextType extends UIState {
   
   // Auth actions - API-driven
   login: (email: string, password: string) => Promise<UserData>;
+  loginWithGoogle: () => void;
   register: (email: string, password: string, phone: string) => Promise<void>;
   requestEmailOtp: (email: string) => Promise<void>;
   verifyEmailOtp: (email: string, otp: string) => Promise<void>;
@@ -36,7 +36,7 @@ interface UIContextType extends UIState {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   
-  // Derived state - read from backend response
+  // Derived state - read from /auth/me response ONLY
   isAuthenticated: boolean;
   isFullyVerified: boolean;
 }
@@ -53,14 +53,14 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   });
 
   /**
-   * Refresh user from backend - SINGLE SOURCE OF TRUTH
+   * Refresh user from /auth/me - SINGLE SOURCE OF TRUTH
    * Called on mount, tab focus, and after mutations
    */
   const refreshUser = useCallback(async (): Promise<void> => {
     try {
       const user = await authApi.getCurrentUser();
       setState(prev => ({ ...prev, user, isInitialized: true }));
-    } catch (error) {
+    } catch {
       setState(prev => ({ ...prev, user: null, isInitialized: true }));
     }
   }, []);
@@ -94,19 +94,24 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   // ============================================================================
-  // AUTH ACTIONS - All backend-authoritative
+  // AUTH ACTIONS - All backend-authoritative via /auth/me
   // ============================================================================
 
   const login = async (email: string, password: string): Promise<UserData> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       const result = await authApi.login(email, password);
+      // User state already validated from /auth/me inside login()
       setState(prev => ({ ...prev, user: result.user, isLoading: false }));
       return result.user;
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
       throw error;
     }
+  };
+
+  const loginWithGoogle = (): void => {
+    authApi.initiateGoogleOAuth();
   };
 
   const register = async (email: string, password: string, phone: string): Promise<void> => {
@@ -128,7 +133,7 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await authApi.verifyEmailOtp(email, otp);
-      await refreshUser(); // Revalidate state from backend
+      await refreshUser(); // Revalidate state from /auth/me
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
@@ -144,7 +149,7 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await authApi.verifyPhoneOtp(phone, otp);
-      await refreshUser(); // Revalidate state from backend
+      await refreshUser(); // Revalidate state from /auth/me
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }));
@@ -157,8 +162,8 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     setState(prev => ({ ...prev, user: null }));
   };
 
-  // Derived state - from backend response ONLY
-  const isAuthenticated = !!state.user?.token;
+  // Derived state - from /auth/me response ONLY
+  const isAuthenticated = !!state.user?.id;
   const isFullyVerified = !!(state.user?.emailVerified && state.user?.phoneVerified);
 
   return (
@@ -168,6 +173,7 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       toggleSidebar, 
       toggleTheme,
       login,
+      loginWithGoogle,
       register,
       requestEmailOtp,
       verifyEmailOtp,

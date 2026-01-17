@@ -1,40 +1,72 @@
-// FRONTEND FROZEN — BACKEND IS SOURCE OF TRUTH
-// Authentication API - All logic is backend-authoritative
-// Frontend ONLY collects credentials and sends to API
+/**
+ * Authentication API - JWT-Only Model
+ * 
+ * STRICT RULES:
+ * - Backend issues ONE JWT ONLY
+ * - NO refresh token
+ * - NO silent refresh
+ * - Frontend NEVER trusts login response user object
+ * - ALL state derived from /auth/me
+ */
 
 import api from '@/utils/api';
+import { toast } from 'sonner';
+import { AuthLoginResponseSchema, AuthMeResponseSchema, OtpResponseSchema, MessageResponseSchema } from '@/schemas/api.schemas';
 import type { UserData } from '@/types/student';
 
 const AUTH_TOKEN_KEY = 'aura_access_token';
-const REFRESH_TOKEN_KEY = 'aura_refresh_token';
 
 // ============================================================================
-// TOKEN MANAGEMENT - ONLY auth tokens stored locally
+// TOKEN MANAGEMENT - JWT ONLY
 // ============================================================================
 
 export const getAccessToken = (): string | null => {
   return localStorage.getItem(AUTH_TOKEN_KEY);
 };
 
-export const setTokens = (accessToken: string, refreshToken?: string): void => {
+export const setToken = (accessToken: string): void => {
   localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
-  if (refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  }
 };
 
-export const clearTokens = (): void => {
+export const clearToken = (): void => {
   localStorage.removeItem(AUTH_TOKEN_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 // ============================================================================
-// API CALLS - Backend-authoritative
+// GOOGLE OAUTH
 // ============================================================================
 
 /**
- * Register new user with email and password
- * Backend creates user and sends verification OTP
+ * Initiate Google OAuth flow
+ * Frontend redirects to backend OAuth URL
+ * Backend handles Google consent screen and returns JWT
+ */
+export const initiateGoogleOAuth = (): void => {
+  const apiUrl = import.meta.env.VITE_API_URL || '/api';
+  const redirectUrl = `${window.location.origin}/auth/callback`;
+  window.location.href = `${apiUrl}/auth/google?redirect_uri=${encodeURIComponent(redirectUrl)}`;
+};
+
+/**
+ * Handle OAuth callback
+ * Backend has already validated Google auth and issued JWT in URL params
+ */
+export const handleOAuthCallback = async (token: string): Promise<UserData | null> => {
+  if (!token) {
+    toast.error('Authentication failed: No token received');
+    return null;
+  }
+  
+  setToken(token);
+  return await getCurrentUser();
+};
+
+// ============================================================================
+// API CALLS - BACKEND AUTHORITATIVE
+// ============================================================================
+
+/**
+ * Register new user
  */
 export const register = async (
   email: string, 
@@ -42,66 +74,119 @@ export const register = async (
   phone: string
 ): Promise<{ message: string }> => {
   const response = await api.post('/auth/register', { email, password, phone });
-  return response.data;
+  const validated = MessageResponseSchema.safeParse(response.data);
+  
+  if (!validated.success || !validated.data.message) {
+    toast.error('Invalid response format from server');
+    throw new Error('Schema validation failed');
+  }
+  
+  return { message: validated.data.message };
 };
 
 /**
  * Login with email and password
- * Returns tokens if credentials valid
+ * IMPORTANT: Do NOT trust user object from response
+ * Frontend MUST call /auth/me to get authoritative state
  */
 export const login = async (
   email: string, 
   password: string
-): Promise<{ user: UserData; accessToken: string; refreshToken: string }> => {
+): Promise<{ user: UserData; access_token: string }> => {
   const response = await api.post('/auth/login', { email, password });
-  const { accessToken, refreshToken } = response.data;
-  setTokens(accessToken, refreshToken);
-  return response.data;
+  const validated = AuthLoginResponseSchema.safeParse(response.data);
+  
+  if (!validated.success) {
+    toast.error('Invalid login response format');
+    throw new Error('Schema validation failed');
+  }
+  
+  // Store token
+  setToken(validated.data.access_token);
+  
+  // CRITICAL: Immediately fetch authoritative user state
+  const user = await getCurrentUser();
+  if (!user) {
+    toast.error('Failed to verify session');
+    throw new Error('Session verification failed');
+  }
+  
+  return { user, access_token: validated.data.access_token };
 };
 
 /**
  * Request OTP for email verification
- * Backend generates and sends OTP - frontend NEVER generates OTPs
  */
 export const requestEmailOtp = async (email: string): Promise<{ message: string }> => {
   const response = await api.post('/auth/otp/email/request', { email });
-  return response.data;
+  const validated = OtpResponseSchema.safeParse(response.data);
+  
+  if (!validated.success || !validated.data.message) {
+    toast.error('Invalid OTP response format');
+    throw new Error('Schema validation failed');
+  }
+  
+  return { message: validated.data.message };
 };
 
 /**
  * Verify email with OTP
- * Backend validates OTP - frontend NEVER validates OTPs
  */
 export const verifyEmailOtp = async (email: string, otp: string): Promise<UserData> => {
   const response = await api.post('/auth/otp/email/verify', { email, otp });
-  return response.data;
+  const validated = AuthMeResponseSchema.safeParse(response.data);
+  
+  if (!validated.success) {
+    toast.error('Invalid verification response');
+    throw new Error('Schema validation failed');
+  }
+  
+  return validated.data as UserData;
 };
 
 /**
  * Request OTP for phone verification
- * Backend generates and sends OTP
  */
 export const requestPhoneOtp = async (phone: string): Promise<{ message: string }> => {
   const response = await api.post('/auth/otp/phone/request', { phone });
-  return response.data;
+  const validated = OtpResponseSchema.safeParse(response.data);
+  
+  if (!validated.success || !validated.data.message) {
+    toast.error('Invalid OTP response format');
+    throw new Error('Schema validation failed');
+  }
+  
+  return { message: validated.data.message };
 };
 
 /**
  * Verify phone with OTP
- * Backend validates OTP
  */
 export const verifyPhoneOtp = async (phone: string, otp: string): Promise<UserData> => {
   const response = await api.post('/auth/otp/phone/verify', { phone, otp });
-  return response.data;
+  const validated = AuthMeResponseSchema.safeParse(response.data);
+  
+  if (!validated.success) {
+    toast.error('Invalid verification response');
+    throw new Error('Schema validation failed');
+  }
+  
+  return validated.data as UserData;
 };
 
 /**
  * Request password reset
- * Backend sends reset OTP to email
  */
 export const requestPasswordReset = async (email: string): Promise<{ message: string }> => {
   const response = await api.post('/auth/password/reset/request', { email });
-  return response.data;
+  const validated = MessageResponseSchema.safeParse(response.data);
+  
+  if (!validated.success || !validated.data.message) {
+    toast.error('Invalid response format');
+    throw new Error('Schema validation failed');
+  }
+  
+  return { message: validated.data.message };
 };
 
 /**
@@ -113,13 +198,20 @@ export const resetPassword = async (
   newPassword: string
 ): Promise<{ message: string }> => {
   const response = await api.post('/auth/password/reset/confirm', { email, otp, newPassword });
-  return response.data;
+  const validated = MessageResponseSchema.safeParse(response.data);
+  
+  if (!validated.success || !validated.data.message) {
+    toast.error('Invalid response format');
+    throw new Error('Schema validation failed');
+  }
+  
+  return { message: validated.data.message };
 };
 
 /**
  * Get current user session
- * Backend validates token and returns user data
  * This is the ONLY source of truth for user state
+ * If this fails → session is invalid
  */
 export const getCurrentUser = async (): Promise<UserData | null> => {
   const token = getAccessToken();
@@ -127,41 +219,32 @@ export const getCurrentUser = async (): Promise<UserData | null> => {
   
   try {
     const response = await api.get('/auth/me');
-    return response.data;
+    const validated = AuthMeResponseSchema.safeParse(response.data);
+    
+    if (!validated.success) {
+      console.error('User data schema validation failed:', validated.error);
+      toast.error('Invalid user data format received');
+      clearToken();
+      return null;
+    }
+    
+    return validated.data as UserData;
   } catch (error) {
-    // Token invalid or expired
-    clearTokens();
+    // Token invalid or expired - session is invalid
+    clearToken();
     return null;
   }
 };
 
 /**
- * Refresh access token
- */
-export const refreshToken = async (): Promise<string | null> => {
-  const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
-  if (!refresh) return null;
-  
-  try {
-    const response = await api.post('/auth/refresh', { refreshToken: refresh });
-    const { accessToken, refreshToken: newRefresh } = response.data;
-    setTokens(accessToken, newRefresh);
-    return accessToken;
-  } catch (error) {
-    clearTokens();
-    return null;
-  }
-};
-
-/**
- * Logout - clears all tokens
+ * Logout - clears token
  */
 export const logout = async (): Promise<void> => {
   try {
     await api.post('/auth/logout');
-  } catch (error) {
-    // Ignore logout errors
+  } catch {
+    // Ignore logout errors - clear token regardless
   } finally {
-    clearTokens();
+    clearToken();
   }
 };
