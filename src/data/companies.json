@@ -1,0 +1,17 @@
+[
+  { "id": 1, "name": "TechNova Solutions", "industry": "Software Development", "location": "Bangalore", "openings": 12, "logo": "🚀" },
+  { "id": 2, "name": "DataMind Analytics", "industry": "Data Science", "location": "Mumbai", "openings": 8, "logo": "📊" },
+  { "id": 3, "name": "CloudSync Technologies", "industry": "Cloud Computing", "location": "Hyderabad", "openings": 15, "logo": "☁️" },
+  { "id": 4, "name": "SecureNet Cyber", "industry": "Cybersecurity", "location": "Pune", "openings": 6, "logo": "🔐" },
+  { "id": 5, "name": "InnovateTech Labs", "industry": "AI & ML", "location": "Bangalore", "openings": 10, "logo": "🤖" },
+  { "id": 6, "name": "FinEdge Systems", "industry": "Fintech", "location": "Chennai", "openings": 9, "logo": "💰" },
+  { "id": 7, "name": "HealthPlus Digital", "industry": "HealthTech", "location": "Delhi", "openings": 7, "logo": "🏥" },
+  { "id": 8, "name": "EduLearn Platform", "industry": "EdTech", "location": "Noida", "openings": 11, "logo": "📚" },
+  { "id": 9, "name": "GreenEnergy Systems", "industry": "CleanTech", "location": "Ahmedabad", "openings": 5, "logo": "🌱" },
+  { "id": 10, "name": "RetailMax Solutions", "industry": "E-Commerce", "location": "Kolkata", "openings": 14, "logo": "🛒" },
+  { "id": 11, "name": "LogiTrack Systems", "industry": "Logistics", "location": "Surat", "openings": 8, "logo": "🚚" },
+  { "id": 12, "name": "MediaStream Inc", "industry": "Entertainment", "location": "Mumbai", "openings": 6, "logo": "🎬" },
+  { "id": 13, "name": "AgriTech Ventures", "industry": "AgTech", "location": "Chandigarh", "openings": 4, "logo": "🌾" },
+  { "id": 14, "name": "SpaceOrbit Labs", "industry": "Aerospace", "location": "Bangalore", "openings": 3, "logo": "🛰️" },
+  { "id": 15, "name": "GameForge Studios", "industry": "Gaming", "location": "Pune", "openings": 7, "logo": "🎮" }
+]

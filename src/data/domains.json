@@ -1,0 +1,14 @@
+[
+  { "id": "tech", "name": "Technology & IT" },
+  { "id": "finance", "name": "Finance & Banking" },
+  { "id": "healthcare", "name": "Healthcare" },
+  { "id": "education", "name": "Education" },
+  { "id": "marketing", "name": "Marketing & Advertising" },
+  { "id": "consulting", "name": "Consulting" },
+  { "id": "manufacturing", "name": "Manufacturing" },
+  { "id": "retail", "name": "Retail & E-commerce" },
+  { "id": "media", "name": "Media & Entertainment" },
+  { "id": "automotive", "name": "Automotive" },
+  { "id": "telecom", "name": "Telecommunications" },
+  { "id": "energy", "name": "Energy & Utilities" }
+]

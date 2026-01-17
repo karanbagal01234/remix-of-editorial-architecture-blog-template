@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "text": "Hello! I'm Aura, your matching assistant. I've been looking through your profile, and I must say, your skills are quite impressive! How can I help you find your perfect match today?",
+    "mood": "happy"
+  },
+  {
+    "id": 2,
+    "text": "Interesting question! Based on the patterns I've observed, companies in your field are particularly excited about candidates with diverse project experience. Would you like me to explore some specific opportunities?",
+    "mood": "curious"
+  },
+  {
+    "id": 3,
+    "text": "I've found 3 companies that seem like a wonderful fit for your skillset. TechNova Solutions stands out because they value creativity and innovation – qualities I can see in your portfolio!",
+    "mood": "excited"
+  },
+  {
+    "id": 4,
+    "text": "That's a thoughtful approach! Taking time to research companies before applying shows great maturity. Let me gather some insights about the work culture at those organizations for you.",
+    "mood": "supportive"
+  },
+  {
+    "id": 5,
+    "text": "I understand the interview process can feel overwhelming sometimes. But here's something I've noticed – candidates who prepare stories about their projects tend to feel more confident. Would you like some tips?",
+    "mood": "caring"
+  },
+  {
+    "id": 6,
+    "text": "Oh, that's exciting news! Congratulations on getting shortlisted. I had a feeling those companies would appreciate your unique blend of technical and creative skills. What would you like to prepare for first?",
+    "mood": "celebrating"
+  },
+  {
+    "id": 7,
+    "text": "You know what I find fascinating? The way your experience in different domains creates such a unique perspective. Many companies are actively looking for this kind of interdisciplinary thinking.",
+    "mood": "thoughtful"
+  },
+  {
+    "id": 8,
+    "text": "Let me check the latest updates for you... Ah, there's been some new activity! Two companies have viewed your profile in the last hour. Would you like me to tell you more about them?",
+    "mood": "curious"
+  },
+  {
+    "id": 9,
+    "text": "I appreciate you sharing that with me. Every career journey has its challenges, and it's completely natural to feel uncertain sometimes. Together, we can find paths that align with your goals.",
+    "mood": "empathetic"
+  },
+  {
+    "id": 10,
+    "text": "Based on your preferences and the market trends I've been analyzing, I have some personalized recommendations ready. Shall we explore them together?",
+    "mood": "helpful"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  { "id": 1, "name": "Aarav Sharma", "email": "aarav.sharma@email.com", "course": "Computer Science", "gpa": 3.8, "skills": ["React", "Python", "Machine Learning"], "status": "matched" },
+  { "id": 2, "name": "Priya Patel", "email": "priya.patel@email.com", "course": "Data Science", "gpa": 3.9, "skills": ["Python", "TensorFlow", "SQL"], "status": "pending" },
+  { "id": 3, "name": "Rohan Gupta", "email": "rohan.gupta@email.com", "course": "Software Engineering", "gpa": 3.5, "skills": ["Java", "Spring Boot", "AWS"], "status": "matched" },
+  { "id": 4, "name": "Ananya Singh", "email": "ananya.singh@email.com", "course": "AI & ML", "gpa": 3.7, "skills": ["Deep Learning", "PyTorch", "NLP"], "status": "interviewing" },
+  { "id": 5, "name": "Vikram Reddy", "email": "vikram.reddy@email.com", "course": "Cloud Computing", "gpa": 3.6, "skills": ["AWS", "Docker", "Kubernetes"], "status": "pending" },
+  { "id": 6, "name": "Kavya Iyer", "email": "kavya.iyer@email.com", "course": "Cybersecurity", "gpa": 3.8, "skills": ["Network Security", "Ethical Hacking", "Python"], "status": "matched" },
+  { "id": 7, "name": "Arjun Nair", "email": "arjun.nair@email.com", "course": "Full Stack Development", "gpa": 3.4, "skills": ["Node.js", "React", "MongoDB"], "status": "interviewing" },
+  { "id": 8, "name": "Ishita Verma", "email": "ishita.verma@email.com", "course": "UI/UX Design", "gpa": 3.9, "skills": ["Figma", "Adobe XD", "User Research"], "status": "matched" },
+  { "id": 9, "name": "Karan Mehta", "email": "karan.mehta@email.com", "course": "DevOps", "gpa": 3.5, "skills": ["Jenkins", "Terraform", "Linux"], "status": "pending" },
+  { "id": 10, "name": "Sneha Joshi", "email": "sneha.joshi@email.com", "course": "Mobile Development", "gpa": 3.7, "skills": ["Flutter", "React Native", "Firebase"], "status": "matched" },
+  { "id": 11, "name": "Aditya Kumar", "email": "aditya.kumar@email.com", "course": "Blockchain", "gpa": 3.6, "skills": ["Solidity", "Web3.js", "Smart Contracts"], "status": "interviewing" },
+  { "id": 12, "name": "Meera Kapoor", "email": "meera.kapoor@email.com", "course": "Data Analytics", "gpa": 3.8, "skills": ["Tableau", "Power BI", "R"], "status": "pending" },
+  { "id": 13, "name": "Rahul Saxena", "email": "rahul.saxena@email.com", "course": "Game Development", "gpa": 3.3, "skills": ["Unity", "C#", "3D Modeling"], "status": "matched" },
+  { "id": 14, "name": "Divya Agarwal", "email": "divya.agarwal@email.com", "course": "IoT", "gpa": 3.7, "skills": ["Arduino", "Raspberry Pi", "Python"], "status": "pending" },
+  { "id": 15, "name": "Siddharth Rao", "email": "siddharth.rao@email.com", "course": "Computer Networks", "gpa": 3.5, "skills": ["CCNA", "Network Design", "Firewall"], "status": "interviewing" },
+  { "id": 16, "name": "Tanya Malhotra", "email": "tanya.malhotra@email.com", "course": "Product Management", "gpa": 3.9, "skills": ["Agile", "Jira", "Data Analysis"], "status": "matched" },
+  { "id": 17, "name": "Nikhil Bhatt", "email": "nikhil.bhatt@email.com", "course": "QA Engineering", "gpa": 3.4, "skills": ["Selenium", "Cypress", "API Testing"], "status": "pending" },
+  { "id": 18, "name": "Riya Chopra", "email": "riya.chopra@email.com", "course": "Systems Architecture", "gpa": 3.8, "skills": ["System Design", "Microservices", "Redis"], "status": "matched" },
+  { "id": 19, "name": "Amit Desai", "email": "amit.desai@email.com", "course": "Business Intelligence", "gpa": 3.6, "skills": ["ETL", "Data Warehousing", "SQL"], "status": "interviewing" },
+  { "id": 20, "name": "Pooja Shetty", "email": "pooja.shetty@email.com", "course": "Digital Marketing", "gpa": 3.7, "skills": ["SEO", "Analytics", "Content Strategy"], "status": "pending" }
+]

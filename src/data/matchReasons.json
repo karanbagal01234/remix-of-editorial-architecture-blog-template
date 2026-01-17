@@ -1,0 +1,17 @@
+{
+  "matched": [
+    ["Your technical skills align perfectly with the role requirements", "Strong cultural fit based on your work style preferences", "Location proximity is within your specified range"],
+    ["Excellent skill match score of 85%+ on core competencies", "Your domain preference matches the company's industry", "Previous project experience is highly relevant"],
+    ["The company actively seeks candidates with your skill set", "Your availability matches their internship timeline", "Strong alignment with company values and mission"]
+  ],
+  "waitlist": [
+    ["Good skill match but high competition for this role", "Consider adding more certifications to strengthen profile", "You're in the top 20% of applicants for this position"],
+    ["Your profile is strong but missing 1-2 key skills", "The company is reviewing multiple qualified candidates", "Enhancing your portfolio could improve your chances"],
+    ["Solid foundation but slightly below the experience threshold", "Your application is being considered for alternate roles", "Adding more project experience would help significantly"]
+  ],
+  "rejected": [
+    ["Skill gap detected in core requirement areas", "Location preference doesn't match available positions", "Consider upskilling in the required technologies"],
+    ["The role requires more specific domain experience", "Your preferred work style isn't offered for this position", "We recommend exploring similar roles in adjacent industries"],
+    ["Competition was exceptionally high for this cohort", "Your profile would be better suited for different opportunities", "We encourage you to apply again after skill enhancement"]
+  ]
+}

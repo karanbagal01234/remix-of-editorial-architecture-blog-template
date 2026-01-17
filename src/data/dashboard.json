@@ -1,0 +1,24 @@
+{
+  "matches": 378,
+  "pending": 51,
+  "avgScore": 68,
+  "totalStudents": 1247,
+  "totalCompanies": 89,
+  "interviewsScheduled": 42,
+  "recentActivity": [
+    { "id": 1, "type": "match", "message": "Aarav matched with TechNova Solutions", "time": "2 min ago" },
+    { "id": 2, "type": "interview", "message": "Priya scheduled interview with DataMind", "time": "15 min ago" },
+    { "id": 3, "type": "application", "message": "5 new applications received", "time": "1 hour ago" },
+    { "id": 4, "type": "match", "message": "Rohan matched with CloudSync Technologies", "time": "2 hours ago" },
+    { "id": 5, "type": "company", "message": "New company registered: InnovateTech Labs", "time": "3 hours ago" }
+  ],
+  "weeklyStats": [
+    { "day": "Mon", "matches": 12, "applications": 45 },
+    { "day": "Tue", "matches": 18, "applications": 52 },
+    { "day": "Wed", "matches": 15, "applications": 38 },
+    { "day": "Thu", "matches": 22, "applications": 61 },
+    { "day": "Fri", "matches": 28, "applications": 73 },
+    { "day": "Sat", "matches": 8, "applications": 24 },
+    { "day": "Sun", "matches": 5, "applications": 15 }
+  ]
+}
