@@ -1,8 +1,13 @@
 /**
  * OAuth Callback Page
  * 
- * Handles redirect from backend after Google OAuth
- * Backend has already validated auth and issued JWT in URL params
+ * Handles redirect from backend after Google OAuth.
+ * Backend has already validated auth and issued JWT in URL params.
+ * 
+ * CONTRACT:
+ * - handleOAuthCallback stores JWT and returns void
+ * - refreshUser hydrates user state from /auth/me
+ * - Navigation based on user verification state
  */
 
 import React, { useEffect, useState } from 'react';
@@ -16,7 +21,7 @@ import AIAvatar from '@/components/AIAvatar';
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { refreshUser } = useUI();
+  const { refreshUser, user } = useUI();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -39,37 +44,40 @@ const AuthCallback: React.FC = () => {
       }
 
       try {
-        const user = await handleOAuthCallback(token);
+        // Store JWT - does NOT return user
+        await handleOAuthCallback(token);
         
-        if (!user) {
-          setStatus('error');
-          setErrorMessage('Failed to verify session');
-          return;
-        }
-
-        setStatus('success');
-        
-        // Refresh UI context
+        // Hydrate user state from /auth/me
         await refreshUser();
         
-        // Navigate based on user state
-        setTimeout(() => {
-          if (!user.emailVerified) {
-            navigate('/verify/email', { replace: true });
-          } else if (!user.phoneVerified) {
-            navigate('/verify/phone', { replace: true });
-          } else {
-            navigate('/student/profile', { replace: true });
-          }
-        }, 1000);
-      } catch (err) {
+        setStatus('success');
+        
+        // Navigation will happen after user state is updated
+      } catch {
         setStatus('error');
         setErrorMessage('Authentication failed. Please try again.');
       }
     };
 
     processCallback();
-  }, [searchParams, navigate, refreshUser]);
+  }, [searchParams, refreshUser]);
+
+  // Navigate once user is hydrated and status is success
+  useEffect(() => {
+    if (status === 'success' && user) {
+      const timeout = setTimeout(() => {
+        if (!user.emailVerified) {
+          navigate('/verify/email', { replace: true });
+        } else if (!user.phoneVerified) {
+          navigate('/verify/phone', { replace: true });
+        } else {
+          navigate('/student/profile', { replace: true });
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [status, user, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-background via-muted/30 to-background">

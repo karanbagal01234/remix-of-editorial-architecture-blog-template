@@ -1,8 +1,8 @@
 # Aura-Match: Project Architecture & System Overview
 
-**Document Version:** 1.0  
-**Status:** FRONTEND FROZEN — BACKEND IS SOURCE OF TRUTH  
-**Last Updated:** 2024
+**Document Version:** 2.0  
+**Status:** PRODUCTION READY — JWT-ONLY AUTH  
+**Last Updated:** 2025-01
 
 ---
 
@@ -127,7 +127,7 @@ Every decision must be:
 | Display data | Render backend-provided information |
 | Collect input | Gather user input for backend submission |
 | Navigation | Route users through flows |
-| Auth tokens | Store and attach access/refresh tokens |
+| Auth token | Store and attach JWT (single token only) |
 | Loading states | Show pending states during API calls |
 | Error display | Show backend-provided error messages |
 
@@ -143,13 +143,12 @@ Every decision must be:
 | Matching engine | AI-powered candidate ranking (opaque) |
 | Audit logging | Immutable record of all actions |
 
-### 3.3 Auth Boundary
+### 3.3 Auth Boundary (JWT-ONLY)
 
 ```
 Frontend Storage:
 ├── localStorage
-│   ├── access_token (JWT, short-lived)
-│   └── refresh_token (JWT, long-lived)
+│   └── aura_access_token (JWT only)
 │
 Backend Validates:
 ├── Token signature
@@ -158,28 +157,29 @@ Backend Validates:
 └── Request authorization
 ```
 
-### 3.4 Token Lifecycle
+### 3.4 Token Lifecycle (NO REFRESH TOKEN)
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                      TOKEN FLOW                               │
+│                   JWT-ONLY TOKEN FLOW                         │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
-│  1. Login/Register                                           │
-│     └── Backend returns: { access_token, refresh_token }     │
+│  1. Login/Register/OAuth                                     │
+│     └── Backend returns: { access_token }                    │
+│     └── Frontend stores JWT, calls /auth/me                  │
 │                                                              │
 │  2. API Request                                              │
-│     └── Frontend attaches: Authorization: Bearer <access>    │
+│     └── Frontend attaches: Authorization: Bearer <token>     │
 │                                                              │
 │  3. Token Expired (401)                                      │
-│     └── Frontend calls: POST /auth/refresh                   │
-│         └── Backend returns: { access_token }                │
+│     └── Frontend clears token → Redirect to /login           │
+│     └── NO silent refresh, NO retry                          │
 │                                                              │
-│  4. Refresh Failed (401)                                     │
-│     └── Frontend clears tokens → Redirect to /login          │
+│  4. Logout                                                   │
+│     └── Frontend clears token → Redirect to /                │
 │                                                              │
-│  5. Logout                                                   │
-│     └── Frontend clears tokens → Redirect to /               │
+│  5. /auth/me is SINGLE SOURCE OF TRUTH                       │
+│     └── All user state derived from /auth/me response        │
 │                                                              │
 └──────────────────────────────────────────────────────────────┘
 ```

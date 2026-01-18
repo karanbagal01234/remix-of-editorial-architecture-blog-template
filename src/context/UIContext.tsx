@@ -7,6 +7,11 @@
  * - Context NEVER stores domain data
  * - On refresh: revalidate from /auth/me
  * - After mutations: refetch state from /auth/me
+ * 
+ * CRITICAL RULES:
+ * - refreshUser() is the ONLY place user state is set
+ * - Login functions do NOT return user
+ * - Login functions do NOT set user state directly
  */
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import * as authApi from '@/api/auth.api';
@@ -25,8 +30,8 @@ interface UIContextType extends UIState {
   toggleSidebar: () => void;
   toggleTheme: () => void;
   
-  // Auth actions - API-driven
-  login: (email: string, password: string) => Promise<UserData>;
+  // Auth actions - ALL return void, NEVER user
+  login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => void;
   register: (email: string, password: string, phone: string) => Promise<void>;
   requestEmailOtp: (email: string) => Promise<void>;
@@ -54,7 +59,9 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
   /**
    * Refresh user from /auth/me - SINGLE SOURCE OF TRUTH
-   * Called on mount, tab focus, and after mutations
+   * 
+   * THIS IS THE ONLY PLACE USER STATE IS SET
+   * Called on mount, tab focus, and after auth mutations
    */
   const refreshUser = useCallback(async (): Promise<void> => {
     try {
@@ -94,34 +101,39 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   // ============================================================================
-  // AUTH ACTIONS - All backend-authoritative via /auth/me
+  // AUTH ACTIONS - All return void, all hydrate via refreshUser()
   // ============================================================================
 
-  const login = async (email: string, password: string): Promise<UserData> => {
+  /**
+   * Login - stores JWT, then hydrates user from /auth/me
+   */
+  const login = async (email: string, password: string): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
-      const result = await authApi.login(email, password);
-      // User state already validated from /auth/me inside login()
-      setState(prev => ({ ...prev, user: result.user, isLoading: false }));
-      return result.user;
-    } catch (error) {
+      await authApi.login(email, password);
+      await refreshUser(); // Hydrate from /auth/me
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
 
+  /**
+   * Google OAuth - redirects to backend OAuth URL
+   */
   const loginWithGoogle = (): void => {
     authApi.initiateGoogleOAuth();
   };
 
+  /**
+   * Register - stores JWT, does NOT hydrate (redirect to verify)
+   */
   const register = async (email: string, password: string, phone: string): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await authApi.register(email, password, phone);
+      // Do NOT refresh - redirect to verification
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
 
@@ -129,15 +141,16 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     await authApi.requestEmailOtp(email);
   };
 
+  /**
+   * Verify email OTP - then hydrate from /auth/me
+   */
   const verifyEmailOtp = async (email: string, otp: string): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await authApi.verifyEmailOtp(email, otp);
       await refreshUser(); // Revalidate state from /auth/me
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
 
@@ -145,18 +158,22 @@ export const UIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     await authApi.requestPhoneOtp(phone);
   };
 
+  /**
+   * Verify phone OTP - then hydrate from /auth/me
+   */
   const verifyPhoneOtp = async (phone: string, otp: string): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await authApi.verifyPhoneOtp(phone, otp);
       await refreshUser(); // Revalidate state from /auth/me
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
 
+  /**
+   * Logout - clears token and user state
+   */
   const logout = async (): Promise<void> => {
     await authApi.logout();
     setState(prev => ({ ...prev, user: null }));
