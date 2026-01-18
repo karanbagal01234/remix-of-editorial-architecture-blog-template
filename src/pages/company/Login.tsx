@@ -1,5 +1,9 @@
 /**
  * Company Login Page
+ * 
+ * JWT-ONLY AUTH MODEL:
+ * - Login stores JWT, does NOT return company
+ * - State hydrated via useCompany() from /company/me
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
@@ -46,7 +50,7 @@ const CompanyLogin: React.FC = () => {
 
     try {
       await loginCompany(email.trim(), password.trim());
-      // Navigation handled by useEffect
+      // Navigation handled by useEffect after state hydration
     } catch {
       setError('Login failed. Please check your credentials.');
     }
@@ -190,7 +194,7 @@ const CompanyLogin: React.FC = () => {
 
         <div className="mt-6">
           <AuraGuidance
-            message="Welcome to the AURA Company Portal. Sign in or register to access our AI-powered intern matching system."
+            message="Welcome to the AURA Company Portal. Sign in or register to access AI-powered intern matching."
           />
         </div>
       </motion.div>

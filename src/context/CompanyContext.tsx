@@ -1,21 +1,17 @@
-// FRONTEND FROZEN — BACKEND IS SOURCE OF TRUTH
 /**
  * CompanyContext - Single source of truth for company state.
  * 
- * ═══════════════════════════════════════════════════════════════
- * BACKEND AUTHORITY MODEL
- * ═══════════════════════════════════════════════════════════════
- * 
+ * JWT-ONLY AUTH MODEL:
  * - All company/job data comes from backend
  * - Context NEVER stores domain data locally
  * - Context NEVER computes match scores
  * - On refresh: revalidate from backend
- * - After mutations: refetch state
+ * - After mutations: refetch state via refreshCompany()
  * 
- * OWNERSHIP BOUNDARIES:
- * - COMPANY INTENT: login, updateProfile, createJob, logout
- * - SYSTEM ACTIONS: verifyGst, processJob, runMatching
- * - READ-ONLY: getMatches, getSummary
+ * CRITICAL RULES:
+ * - refreshCompany() is the ONLY place company state is set
+ * - Login functions do NOT return company
+ * - Login functions do NOT set company state directly
  */
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import * as companyApi from '@/api/company.api';
@@ -32,30 +28,34 @@ interface CompanyState {
 }
 
 interface CompanyContextType extends CompanyState {
-  // === COMPANY INTENT ACTIONS ===
-  loginCompany: (email: string, password: string) => Promise<CompanyUser>;
+  // Auth actions - ALL return void, NEVER company
+  loginCompany: (email: string, password: string) => Promise<void>;
   registerCompany: (email: string, password: string, companyName: string) => Promise<void>;
-  updateCompanyProfile: (data: Partial<CompanyUser>) => Promise<CompanyUser>;
-  createJob: (data: CreateJobInput) => Promise<CompanyJob>;
   logoutCompany: () => Promise<void>;
   
-  // === VERIFICATION ===
+  // Profile
+  updateCompanyProfile: (data: Partial<CompanyUser>) => Promise<CompanyUser>;
+  
+  // Jobs
+  createJob: (data: CreateJobInput) => Promise<CompanyJob>;
+  
+  // Verification
   requestEmailOtp: (email: string) => Promise<void>;
   verifyEmailOtp: (email: string, otp: string) => Promise<void>;
   verifyGst: (gstNumber: string) => Promise<void>;
   
-  // === SYSTEM ACTIONS ===
+  // System Actions
   processJob: (jobId: string) => Promise<boolean>;
   runMatching: (jobId: string) => Promise<MatchProposal[]>;
   performMatchAction: (matchId: string, action: MatchAction) => Promise<MatchProposal>;
   getMatchesForJob: (jobId: string) => Promise<MatchProposal[]>;
   getJobMatchSummary: (jobId: string, intake: number) => Promise<JobMatchSummary>;
   
-  // === REFRESH UTILITIES ===
+  // Hydration
   refreshCompany: () => Promise<void>;
   refreshJobs: () => Promise<void>;
   
-  // === DERIVED STATE ===
+  // Derived State
   isAuthenticated: boolean;
   isVerified: boolean;
   hasJobs: boolean;
@@ -85,7 +85,8 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [state.company?.id]);
 
   /**
-   * Full company refresh from backend
+   * Refresh company from /company/me - SINGLE SOURCE OF TRUTH
+   * THIS IS THE ONLY PLACE COMPANY STATE IS SET
    */
   const refreshCompany = useCallback(async (): Promise<void> => {
     try {
@@ -116,30 +117,52 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
     return () => window.removeEventListener('focus', handleFocus);
   }, [refreshCompany]);
 
-  // === COMPANY INTENT ACTIONS ===
+  // ============================================================================
+  // AUTH ACTIONS - All return void, all hydrate via refreshCompany()
+  // ============================================================================
 
-  const loginCompany = async (email: string, password: string): Promise<CompanyUser> => {
+  /**
+   * Login - stores JWT, then hydrates from /company/me
+   */
+  const loginCompany = async (email: string, password: string): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
-      const result = await companyApi.loginCompany(email, password);
-      setState(prev => ({ ...prev, company: result.company, jobs: [], isLoading: false }));
-      return result.company;
-    } catch (error) {
+      await companyApi.loginCompany(email, password);
+      await refreshCompany(); // Hydrate from /company/me
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
 
+  /**
+   * Register - stores JWT, does NOT hydrate (redirect to verify)
+   */
   const registerCompany = async (email: string, password: string, companyName: string): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await companyApi.registerCompany(email, password, companyName);
+      // Do NOT refresh - redirect to verification
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
+
+  /**
+   * Logout - clears token and company state
+   */
+  const logoutCompany = async (): Promise<void> => {
+    setState(prev => ({ ...prev, isLoading: true }));
+    try {
+      await companyApi.logoutCompany();
+      setState(prev => ({ ...prev, company: null, jobs: [], isLoading: false }));
+    } catch {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  };
+
+  // ============================================================================
+  // PROFILE & JOBS
+  // ============================================================================
 
   const updateCompanyProfile = async (data: Partial<CompanyUser>): Promise<CompanyUser> => {
     setState(prev => ({ ...prev, isLoading: true }));
@@ -160,7 +183,7 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       const job = await companyJobsApi.createJob(state.company.id, data);
-      await refreshJobs(); // Sync from backend
+      await refreshJobs();
       setState(prev => ({ ...prev, isLoading: false }));
       return job;
     } catch (error) {
@@ -169,32 +192,24 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
-  const logoutCompany = async (): Promise<void> => {
-    setState(prev => ({ ...prev, isLoading: true }));
-    try {
-      await companyApi.logoutCompany();
-      setState(prev => ({ ...prev, company: null, jobs: [], isLoading: false }));
-    } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
-    }
-  };
-
-  // === VERIFICATION ===
+  // ============================================================================
+  // VERIFICATION
+  // ============================================================================
 
   const requestEmailOtp = async (email: string): Promise<void> => {
     await companyApi.requestCompanyEmailOtp(email);
   };
 
+  /**
+   * Verify email OTP - then hydrate from /company/me
+   */
   const verifyEmailOtp = async (email: string, otp: string): Promise<void> => {
     setState(prev => ({ ...prev, isLoading: true }));
     try {
       await companyApi.verifyCompanyEmailOtp(email, otp);
       await refreshCompany();
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
 
@@ -203,14 +218,14 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
     try {
       await companyApi.verifyCompanyGst(gstNumber);
       await refreshCompany();
+    } finally {
       setState(prev => ({ ...prev, isLoading: false }));
-    } catch (error) {
-      setState(prev => ({ ...prev, isLoading: false }));
-      throw error;
     }
   };
 
-  // === SYSTEM ACTIONS ===
+  // ============================================================================
+  // SYSTEM ACTIONS
+  // ============================================================================
 
   const processJob = async (jobId: string): Promise<boolean> => {
     setState(prev => ({ ...prev, isLoading: true }));
@@ -260,33 +275,28 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   // Derived state - from backend response ONLY
-  const isAuthenticated = !!state.company?.token;
+  const isAuthenticated = !!state.company?.id;
   const isVerified = !!state.company?.emailVerified;
   const hasJobs = state.jobs.length > 0;
 
   return (
     <CompanyContext.Provider value={{
       ...state,
-      // Company intent
       loginCompany,
       registerCompany,
+      logoutCompany,
       updateCompanyProfile,
       createJob,
-      logoutCompany,
-      // Verification
       requestEmailOtp,
       verifyEmailOtp,
       verifyGst,
-      // System actions
       processJob,
       runMatching,
       performMatchAction,
       getMatchesForJob,
       getJobMatchSummary,
-      // Utilities
       refreshCompany,
       refreshJobs,
-      // Derived
       isAuthenticated,
       isVerified,
       hasJobs,
